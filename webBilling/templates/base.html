@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SiiWeb{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body class="bg-gray-100">
+    {% load static %}
+    <nav class="bg-gray-800 text-white w-full">
+        <div class="container mx-auto px-1 py-2 flex items-center justify-between">
+            {% if request.session.is_authenticated %}
+            <!-- Botón para abrir el menú (icono hamburguesa) -->
+            <button id="menu-toggle" class="text-white focus:outline-none">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            {% endif %}
+
+            <!-- Título o logotipo al centro -->
+            <div class="text-xl font-bold">
+                <img src="{% static 'img/LogoCAO.jpg' %}" alt="Icono" class="h-12 w-12 object-cover rounded-full">
+            </div>
+
+            <!-- Carrito y login a la derecha -->
+            <div class="flex items-center space-x-4">
+                {% if request.session.is_authenticated %}
+                <button class="relative" id="btnLoginView">
+                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l1.2-6H5.4M16 13a4 4 0 11-8 0M6 17h12a2 2 0 002-2H4a2 2 0 002 2z" />
+                    </svg>
+                </button>
+                {% else %}
+                <a href="{% url 'login' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Login</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Menú desplegable (oculto inicialmente) -->
+        <div id="side-menu"
+            class="fixed inset-y-0 left-0 bg-gray-800 text-white w-64 transform -translate-x-full transition-transform duration-300 z-50">
+            <!-- Header del menú -->
+            <div class="flex items-center justify-between px-4 py-4 bg-gray-900">
+                <h2 class="text-lg font-bold">Menú</h2>
+                <button id="menu-close" class="text-white focus:outline-none">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Opciones del menú -->
+            <nav class="mt-4">
+                <p class="block px-4 py-2">Información del usuario</p>
+                <label class="block px-4 text-center" for="userNameLoged">Nombre de usuario:</label>
+                <h6 class="block px-4 text-center" id="userNameLoged"></h6>
+                <label class="block px-4 text-center" for="userRucLoged">Ruc:</label>
+                <h6 class="block px-4 text-center" id="userRucLoged"></h6>
+                <hr>
+                <!-- <a href="{% url 'page_home' %}" class="block px-4 py-2 text-decoration-none text-reset">Inicio</a> -->
+                <a href="{% url 'view_enterprise' %}" class="block px-4 py-2 text-decoration-none text-reset">Empresa</a>
+                <a href="{% url 'view_fact' %}" class="block px-4 py-2 text-decoration-none text-reset">Productos</a>
+                <!-- <a href="{% url 'view_settings' %}" class="block px-4 py-2 text-decoration-none text-reset">Configuraciones</a> -->
+            </nav>
+            <!-- Botón al final del menú -->
+            <div class="absolute bottom-0 w-full px-4 py-3 bg-gray-900">
+                <a href="/logout/"
+                    class="block w-full text-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded">
+                    Cerrar sesión
+                </a>
+            </div>
+        </div>
+    </nav>
+    {% block content %}
+    {% endblock %}
+
+</body>
+<script src="../static/js/base.js"></script>
+</html>

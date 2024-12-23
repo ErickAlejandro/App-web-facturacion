@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}
+Empresa
+{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<body>
+    <div class="row mx-auto">
+        <div class="col-md-12">
+            <div class="card mt-2">
+                <div class="card-body">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script id="userData" type="application/json">
+    {{ user_data|safe }}
+</script>
+<script id="enterpriseData" type="application/json">
+    {{ enterprise_data|safe }}
+</script>
+<script src="../static/js/enterprise.js"></script>
+{% endblock %}
