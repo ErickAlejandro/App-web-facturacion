@@ -9,6 +9,9 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.http import JsonResponse
 from django.core import serializers
+from django.views.decorators.csrf import csrf_exempt
+import json
+from fnmatch import fnmatch
 
 # Conexion directa con la base de datos
 def connection_db(base):
@@ -248,3 +251,40 @@ def send_trama(request, infoTrama):
             return JsonResponse({"error": "Error al consultar la API externa"}, status=500) 
     except pyodbc.Error as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+@csrf_exempt
+def get_printing_format(request):
+    if request.method == "POST":
+        try:
+            # Obtener el directorio y el código de transacción desde las variables de entorno
+            directory_path = os.getenv('DIRE_PRINTING_FORMAT')
+            cod_trans = f"g{os.getenv('COD_TRANS')}"
+
+            print(f"Directorio: {directory_path}, Código Transacción: {cod_trans}")
+
+            if not os.path.exists(directory_path):
+                return JsonResponse({"success": False, "message": "Directorio no encontrado."}, status=404)
+
+            # Buscar archivos .txt que coincidan con el nombre cod_trans
+            matching_files = [
+                file for file in os.listdir(directory_path)
+                if fnmatch(file, f"{cod_trans}*.txt")
+            ]
+            
+            if not matching_files:
+                return JsonResponse({"success": False, "message": "No se encontraron archivos coincidentes."}, status=404)
+            
+            matching_file = matching_files[0]
+            file_path = os.path.join(directory_path, matching_file)
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+            
+            return JsonResponse({
+                "success": True,
+                "matching_files": matching_files,
+                "file_content": file_content
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "message": f"Error inesperado: {str(e)}"}, status=500)
+
+    return JsonResponse({"success": False, "message": "Método no permitido."}, status=405)

@@ -17,4 +17,5 @@ urlpatterns = [
     path('getEmpresa/', views.get_empresa, name="getEmpresa"),
     path('getExistencias/', views.get_existencias, name="getExistencias"),
     path('sendTrama/<str:infoTrama>/', views.send_trama, name='sendTrama'),
+    path('getFormatImpresion/', views.get_printing_format, name='get_printing_format'),
 ]

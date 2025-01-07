@@ -34,7 +34,6 @@ Facturación - Ordenes - Productos
                                 <thead>
                                     <tr>
                                       <th scope="col">Productos</th>
-                                      <th scope="col">Precio + %IVA</th>
                                       <th scope="col">Cantidad</th>
                                       <th scope="col">*</th>
                                     </tr>
@@ -53,7 +52,6 @@ Facturación - Ordenes - Productos
                                       <tr>
                                         <th scope="col">Codigo Item</th>
                                         <th scope="col">Descripcion</th>
-                                        <th scope="col">Precio/Unidad</th>
                                         <th scope="col">Acción</th>
                                       </tr>
                                     </thead>
@@ -74,9 +72,7 @@ Facturación - Ordenes - Productos
                 <h6 class="text-center">Datos de Facturación</h6>
                 <div class="row">
                     <div class="col-md-5" style="text-align: center;">
-                        <h6>Valor total de la compra:</h6>
                         <hr>
-                        <h2 id="valorTotalCompra"></h2>
                         <button type="button" class="btn btn-success btn-block" id="btnGrabarTransaccion">Grabar Transacción</button>
                     </div>
                     <div class="col-md-6" style="text-align: center;">
@@ -115,6 +111,7 @@ Facturación - Ordenes - Productos
       url: "{{ url }}"
     };
 </script>
+<script src="https://unpkg.com/pdf-lib@1.17.1"></script>
 <script id="transData" type="application/json">
     {{ trans_data|safe }}
 </script>

@@ -9,6 +9,7 @@ from billing.connection_data_bases import get_trans
 from billing.connection_data_bases import get_empresa
 from billing.connection_data_bases import get_existencias
 from billing.connection_data_bases import send_trama
+from billing.connection_data_bases import get_printing_format
 import json
 import os
 from billing.models import access_login_sii
