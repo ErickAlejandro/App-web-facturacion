@@ -15,6 +15,7 @@ import os
 from billing.models import access_login_sii
 from django.shortcuts import redirect
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 
 def login_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -241,3 +242,26 @@ def logout_access(request):
     request.session.flush()
     return redirect('/login/')
 
+@csrf_exempt
+def send_pdf(request):
+    if request.method == 'POST' and request.FILES.get('pdf_file'):
+        pdf_file = request.FILES['pdf_file']
+        email = request.POST.get('email')
+        
+        # Configura el mensaje del correo
+        email_message = EmailMessage(
+            subject='Sistema Web Sii4',
+            body='Archivos de Ofertas',
+            to=[email],
+        )
+        
+        # Adjunta el archivo PDF al correo
+        email_message.attach(pdf_file.name, pdf_file.read(), pdf_file.content_type)
+        
+        try:
+            # Envía el correo
+            email_message.send()
+            return JsonResponse({'success': True, 'message': 'Correo enviado con éxito.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+    return JsonResponse({'success': False, 'message': 'Archivo PDF no recibido.'}, status=400)

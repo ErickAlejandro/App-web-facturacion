@@ -28,8 +28,9 @@ let bandImgProduct = false,
   formaCobro = "CRÉDITO",
   numeroDias = 30,
   documentoReferencia = 1,
-  idVendedorPre = 221;
-  
+  idVendedorPre = 221,
+  infoTramaSend;
+
 function getCSRFToken() {
   const name = "csrftoken";
   const cookies = document.cookie.split(";");
@@ -53,8 +54,6 @@ try {
   numPedido.textContent = `Número de Pedido: ${transData[0].numtranssiguiente}`;
 
   userData = JSON.parse(document.getElementById("userData").textContent);
-  console.log(userData)
-  console.log(transData)
   nombreCliente.textContent = `Nombre: ${userData.nombre}`;
   rucCliente.textContent = `RUC/ID: ${userData.ruc}`;
   telefonoCliente.textContent = `Teléfono: ${
@@ -312,11 +311,6 @@ btnGrabarTransaccion.addEventListener("click", async function () {
     if (!responseEmpresa.ok || !responseTrans.ok || !responseExistencias.ok) {
       toastr.error("Error en las Solicitudes", "Error");
       throw new Error("Error en una o ambas solicitudes.");
-    } else {
-      toastr.success(
-        "Información de la empresa, transacción y existencias obtenidas exitosamente",
-        "Exito"
-      );
     }
 
     const dataEmpresa = await responseEmpresa.json();
@@ -348,6 +342,7 @@ btnGrabarTransaccion.addEventListener("click", async function () {
         opciones: infoTrans[0].opciones,
       };
     });
+
     const updatedProductsTrama = productsTrama.map((product) => {
       const match = infoExistencias.find(
         (existencia) => existencia.inventario_id == product.idInventario
@@ -397,6 +392,7 @@ btnGrabarTransaccion.addEventListener("click", async function () {
       const resultSendTrama = await responseSendTrama.json();
 
       if (resultSendTrama.estado) {
+        infoTramaSend = resultSendTrama.estado;
         toastr.success(
           resultSendTrama.estado,
           "Transacción grabada exitosamente."
@@ -519,8 +515,8 @@ function generarDocumento(formatoConfig, campos, secciones) {
 
     // Ajustes de la pagina general
     switch (formatoConfig.TamañoPapel) {
-      case 'A4':
-        sizePage = [595, 842]
+      case "A4":
+        sizePage = [595, 842];
         break;
     }
     const page = pdfDoc.addPage(sizePage);
@@ -533,194 +529,197 @@ function generarDocumento(formatoConfig, campos, secciones) {
       if (procesados.has(nombreCampo)) {
         return;
       }
-      
+
       procesados.add(nombreCampo);
-      console.log(atributos)
-      console.log(nombreCampo)
+      // console.log(atributos)
+      // console.log(nombreCampo)
       switch (nombreCampo) {
         // case "LOGOEMPRESA":
-        //   var posX = parseFloat(atributos[1].value); 
+        //   var posX = parseFloat(atributos[1].value);
         //   var posY = height - parseFloat(atributos[2].value);
-        //   var width = parseFloat(atributos[3].value) * 2.5; 
+        //   var width = parseFloat(atributos[3].value) * 2.5;
         //   var heightRect = parseFloat(atributos[4].value) * 2;
         //   page.drawRectangle({
         //     x: (posX * 0.1),
         //     y: (posY * 1.5) - heightRect,
         //     width: width,
         //     height: heightRect,
-        //     borderColor: rgb(0, 0, 0), 
-        //     borderWidth: 1, 
+        //     borderColor: rgb(0, 0, 0),
+        //     borderWidth: 1,
         //   });
         //   break
         case "RUC: ":
-          var posX = parseFloat(atributos[2].value); 
+          var posX = parseFloat(atributos[2].value);
           var posY = parseFloat(atributos[3].value);
           var fontSize = parseFloat(atributos[5]?.value) || 12;
           // page.drawText(`RUC:`, {
           //   x: (posX  * 4),
           //   y: (posY  * 25),
           //   size: (fontSize * 0.8),
-          //   color: rgb(0, 0, 0), 
+          //   color: rgb(0, 0, 0),
           // });
           // page.drawText(`Ruc de la empresa`, {
           //   x: (posX * 6),
           //   y: (posY * 25),
           //   size: (fontSize * 0.8),
-          //   color: rgb(0, 0, 0), 
+          //   color: rgb(0, 0, 0),
           // });
           page.drawText(`RUC`, {
-            x: (posX * 27.63),
-            y: (posY * 23.7),
-            size: (fontSize * 0.8),
-            color: rgb(0, 0, 0), 
+            x: posX * 27.63,
+            y: posY * 23.7,
+            size: fontSize * 0.8,
+            color: rgb(0, 0, 0),
           });
           page.drawText(`${userData.ruc}`, {
-            x: (posX * 30.8),
-            y: (posY * 23.7),
-            size: (fontSize * 0.9),
-            color: rgb(0, 0, 0), 
+            x: posX * 30.8,
+            y: posY * 23.7,
+            size: fontSize * 0.9,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "PROFORMA No.":
-          var posX = parseFloat(atributos[1].value) * 4; 
+          var posX = parseFloat(atributos[1].value) * 4;
           var posY = parseFloat(atributos[2].value) * 19;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`PROFORMA No. `, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.8),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.8,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "NUMTRANS":
-          var posX = parseFloat(atributos[1].value) * 2.5; 
+          var posX = parseFloat(atributos[1].value) * 2.5;
           var posY = parseFloat(atributos[2].value) * 19;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`${transData[0].numtranssiguiente}`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.8),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.8,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "FECHA":
-          var posX = parseFloat(atributos[1].value) * 4; 
+          var posX = parseFloat(atributos[1].value) * 4;
           var posY = parseFloat(atributos[2].value) * 16.5;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`FECHA`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.5),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.5,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "FECHATRANS":
           const hoy = new Date();
           const año = hoy.getFullYear();
-          const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-          const día = String(hoy.getDate()).padStart(2, '0');
+          const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+          const día = String(hoy.getDate()).padStart(2, "0");
           const fechaActual = `${año}-${mes}-${día}`;
 
-          var posX = parseFloat(atributos[2].value) * 3.4; 
+          var posX = parseFloat(atributos[2].value) * 3.4;
           var posY = parseFloat(atributos[3].value) * 16.5;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`${fechaActual}`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.13),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.13,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "ATENCION":
-          var posX = parseFloat(atributos[2].value) * 10.6; 
+          var posX = parseFloat(atributos[2].value) * 10.6;
           var posY = parseFloat(atributos[3].value) * 14.7;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`ATENCION`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.6),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.6,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "VENDEDOR":
-          var posX = parseFloat(atributos[1].value) * 2.85; 
+          var posX = parseFloat(atributos[1].value) * 2.85;
           var posY = parseFloat(atributos[2].value) * 16.8;
           var fontSize = parseFloat(atributos[3]?.value) || 12;
           page.drawText(`VENDEDOR`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.13),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.13,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "NOMVENDE":
-          var posX = parseFloat(atributos[2].value) * 2.8; 
+          var posX = parseFloat(atributos[2].value) * 2.8;
           var posY = parseFloat(atributos[3].value) * 16.8;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`Pagina Web`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.13),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.13,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "CLIENTE":
-          var posX = parseFloat(atributos[2].value) * 1.26; 
+          var posX = parseFloat(atributos[2].value) * 1.26;
           var posY = parseFloat(atributos[3].value) * 13.92;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`CLIENTE`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.5),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.5,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "NOMCLI":
-          var posX = parseFloat(atributos[2].value) * 2.9; 
+          var posX = parseFloat(atributos[2].value) * 2.9;
           var posY = parseFloat(atributos[3].value) * 9.95;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`${userData.nombre}`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.6),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.6,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "PCCODGRUPO3":
-          break
+          break;
         case "DIRECCION":
-          var posX = parseFloat(atributos[2].value) * 1.17; 
+          var posX = parseFloat(atributos[2].value) * 1.17;
           var posY = parseFloat(atributos[3].value) * 13.65;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`DIRECCION`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.5),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.5,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "DIRCLI":
-          var posX = parseFloat(atributos[2].value) * 2.66; 
+          var posX = parseFloat(atributos[2].value) * 2.66;
           var posY = parseFloat(atributos[3].value) * 9.75;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
-          page.drawText(`${userData.direccion == '' ? '' : userData.direccion}`, {
-            x: posX,
-            y: posY,
-            size: (fontSize * 1.6),
-            color: rgb(0, 0, 0), 
-          });
-          break
+          page.drawText(
+            `${userData.direccion == "" ? "" : userData.direccion}`,
+            {
+              x: posX,
+              y: posY,
+              size: fontSize * 1.6,
+              color: rgb(0, 0, 0),
+            }
+          );
+          break;
         case "TELEFONO":
-          var posX = parseFloat(atributos[2].value) * 8.13; 
+          var posX = parseFloat(atributos[2].value) * 8.13;
           var posY = parseFloat(atributos[3].value) * 13.95;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
           page.drawText(`TELEFONO`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.55),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.55,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "TELCLI":
           var posX = parseFloat(atributos[2].value) * 9.05;
           var posY = parseFloat(atributos[3].value) * 34.86;
@@ -728,10 +727,10 @@ function generarDocumento(formatoConfig, campos, secciones) {
           page.drawText(`${userData.telefono}`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.6),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.6,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "De mi consideración:":
           var posX = parseFloat(atributos[2].value);
           var posY = parseFloat(atributos[3].value) * 13;
@@ -739,21 +738,24 @@ function generarDocumento(formatoConfig, campos, secciones) {
           page.drawText(`De mi consideración:`, {
             x: posX,
             y: posY,
-            size: (fontSize * 0.58),
-            color: rgb(0, 0, 0), 
+            size: fontSize * 0.58,
+            color: rgb(0, 0, 0),
           });
-          break
+          break;
         case "A continuación me es grato presentar la oferta de productos y/o servicios, solicitados por usted: ":
           var posX = parseFloat(atributos[2].value) * 0.92;
           var posY = parseFloat(atributos[3].value) * 2.55;
           var fontSize = parseFloat(atributos[4]?.value) || 12;
-          page.drawText(`A continuación me es grato presentar la oferta de productos y/o servicios, solicitados por usted:`, {
-            x: posX,
-            y: posY,
-            size: (fontSize * 0.58),
-            color: rgb(0, 0, 0), 
-          });
-          break
+          page.drawText(
+            `A continuación me es grato presentar la oferta de productos y/o servicios, solicitados por usted:`,
+            {
+              x: posX,
+              y: posY,
+              size: fontSize * 0.58,
+              color: rgb(0, 0, 0),
+            }
+          );
+          break;
         // case "SUBTOTAL T0":
         //   var posX = parseFloat(atributos[2].value);
         //   var posY = parseFloat(atributos[3].value);
@@ -762,13 +764,13 @@ function generarDocumento(formatoConfig, campos, secciones) {
         //     x: (posX * 3),
         //     y: (posY * 6),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   page.drawText(`Valor SubTotal0`, {
         //     x: (posX * 4),
         //     y: (posY * 6),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   break
         // case "SUBTOTAL T14":
@@ -779,13 +781,13 @@ function generarDocumento(formatoConfig, campos, secciones) {
         //     x: (posX * 2.92),
         //     y: (posY * 5.6),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   page.drawText(`Valor subtotal14`, {
         //     x: (posX * 3.89),
         //     y: (posY * 5.6),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   break
         // case "DESCUENTO":
@@ -796,13 +798,13 @@ function generarDocumento(formatoConfig, campos, secciones) {
         //     x: (posX * 2.85),
         //     y: (posY * 5.2),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   page.drawText(`Valor del descuento`, {
         //     x: (posX * 3.785),
         //     y: (posY * 5.2),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   break
         // case "SUMAN":
@@ -813,13 +815,13 @@ function generarDocumento(formatoConfig, campos, secciones) {
         //     x: (posX  * 2.77),
         //     y: (posY  * 4.8),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   page.drawText(`Valor Suman`, {
         //     x: (posX  * 3.69),
         //     y: (posY  * 4.8),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   break
         // case "IVA 15%":
@@ -830,13 +832,13 @@ function generarDocumento(formatoConfig, campos, secciones) {
         //     x: (posX * 2.7),
         //     y: (posY * 4.4),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   page.drawText(`Valor iva 15`, {
         //     x: (posX * 3.6),
         //     y: (posY * 4.4),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   break
         // case "TOTAL":
@@ -847,47 +849,71 @@ function generarDocumento(formatoConfig, campos, secciones) {
         //     x: (posX * 2.63),
         //     y: (posY * 4),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   page.drawText(`Valor Total`, {
         //     x: (posX * 3.515),
         //     y: (posY * 4),
         //     size: (fontSize * 0.58),
-        //     color: rgb(0, 0, 0), 
+        //     color: rgb(0, 0, 0),
         //   });
         //   break
-      }  
-    })
-    // Crecion par las tablas 
-    var seccionProducts = secciones[0]
+      }
+    });
+    // Crecion par las tablas
+    var seccionProducts = secciones[0];
     var seccionProductsAtributos = seccionProducts.atributos;
     var seccionProductsColumns = seccionProducts.columnas;
 
-    const posX = parseFloat(seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "posx")?.value || 0);
-    const posY = parseFloat(seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "posy")?.value || 0);
-    const ancho = parseFloat(seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "ancho")?.value || 0);
-    const alto = parseFloat(seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "alto")?.value || 0);
-    const titulo = seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "titulo")?.value || "";
-    const tamañoLetra = parseInt(seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "tamañoletra")?.value || 10, 10);
-    const cuadro = seccionProductsAtributos.find(attr => attr.key.toLowerCase() === "cuadro")?.value === "SI";
+    const posX = parseFloat(
+      seccionProductsAtributos.find((attr) => attr.key.toLowerCase() === "posx")
+        ?.value || 0
+    );
+    const posY = parseFloat(
+      seccionProductsAtributos.find((attr) => attr.key.toLowerCase() === "posy")
+        ?.value || 0
+    );
+    const ancho = parseFloat(
+      seccionProductsAtributos.find(
+        (attr) => attr.key.toLowerCase() === "ancho"
+      )?.value || 0
+    );
+    const alto = parseFloat(
+      seccionProductsAtributos.find((attr) => attr.key.toLowerCase() === "alto")
+        ?.value || 0
+    );
+    const titulo =
+      seccionProductsAtributos.find(
+        (attr) => attr.key.toLowerCase() === "titulo"
+      )?.value || "";
+    const tamañoLetra = parseInt(
+      seccionProductsAtributos.find(
+        (attr) => attr.key.toLowerCase() === "tamañoletra"
+      )?.value || 10,
+      10
+    );
+    const cuadro =
+      seccionProductsAtributos.find(
+        (attr) => attr.key.toLowerCase() === "cuadro"
+      )?.value === "SI";
     if (cuadro) {
-        page.drawRectangle({
-            x: (posX * 4),
-            y: (posY * 8.3),
-            width: (ancho * 2.7),
-            height: (alto * 0.3),
-            borderColor: rgb(0, 0, 0),
-            borderWidth: 1,
-            color: rgb(99 / 255, 255 / 255, 247 / 255),
-        });
+      page.drawRectangle({
+        x: posX * 4,
+        y: posY * 8.3,
+        width: ancho * 2.7,
+        height: alto * 0.3,
+        borderColor: rgb(0, 0, 0),
+        borderWidth: 1,
+        color: rgb(99 / 255, 255 / 255, 247 / 255),
+      });
     }
     if (titulo) {
-        page.drawText(titulo, {
-            x: (posX * 4) + 240,
-            y: (posY * 8) + (alto * 0.87) - 10,
-            size: tamañoLetra,
-            color: rgb(0, 0, 0),
-        });
+      page.drawText(titulo, {
+        x: posX * 4 + 240,
+        y: posY * 8 + alto * 0.87 - 10,
+        size: tamañoLetra,
+        color: rgb(0, 0, 0),
+      });
     }
     // Dibujar la cabecera de la tabla dentro del archivo PDF
     var posXColumn = posX * 4.4;
@@ -963,17 +989,41 @@ function generarDocumento(formatoConfig, campos, secciones) {
       });
       posYFila -= 15;
     });
-    
 
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const formData = new FormData();
+    formData.append("pdf_file", blob, `${infoTramaSend}.pdf`);
+    formData.append("email", userData.email);
+    sendFile(formData);
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download = "documento_generado.pdf"; // El nombre del archivo PDF
+    link.download = `${infoTramaSend}.pdf`; // El nombre del archivo PDF
     link.click();
 
     // Limpiar el objeto URL
     URL.revokeObjectURL(blobUrl);
   });
+}
+
+function sendFile(formData) {
+  // Enviar al servidor
+  fetch("/sendPdf/", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "X-CSRFToken": getCSRFToken(),
+    },
+  })
+    .then((response) => {
+      if (response.ok) {
+        toastr.success("Correo enviado correctamente", "Enviando Correo");
+      } else {
+        toastr.error("Revisar el correo enviado", "Error");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 }
