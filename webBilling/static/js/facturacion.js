@@ -13,6 +13,7 @@ const telefonoCliente = document.getElementById("telefonoCliente");
 const emailCliente = document.getElementById("emailCliente");
 const direccionCliente = document.getElementById("direccionCliente");
 const btnGrabarTransaccion = document.getElementById("btnGrabarTransaccion");
+const btnAddedItem = document.getElementById("btnAddedItem");
 
 const userNameLoged = document.getElementById("userNameLoged");
 const userRucLoged = document.getElementById("userRucLoged");
@@ -84,100 +85,167 @@ inputProductSearch.addEventListener("input", function () {
 });
 
 btnSearchProduct.addEventListener("click", function () {
-  rowProductsSelecteds.style.display = "";
-  colProductsFilter.style.display = "";
   var productSearch = inputProductSearch.value;
 
   tbodySerchProducts.innerHTML = "";
 
   if (productSearch != "" && productSearch != " ") {
-    var url = `${window.location.origin}/getProduct/${productSearch}/`;
-    fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Ishida7410.",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error en la respuesta: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        // console.log("Respuesta del servidor:", data);
-        var products = data.response;
-        toastr.success(
-          `Se han encontrado ${products.length} coincidencias.`,
-          "Productos encontrados"
-        );
+    if(productSearch == "-"){
+      var modalNewItem = new bootstrap.Modal(document.getElementById("modalNewItem"));
+      modalNewItem.show();
+      // Funcionalidad del boton para agregar el nuevo item
+      btnAddedItem.addEventListener("click", function(){
+        var inputDescription = document.getElementById("textAreaNewItem");
+        var descriptions = inputDescription.value.trim();
 
-        if (products.length != 0) {
-          products.forEach(function (product) {
-            var row = document.createElement("tr");
+        var items = descriptions.split("\n").filter((desc) => desc.trim() !== "");
 
-            var cellCodItem = document.createElement("td");
-            cellCodItem.textContent = product.cod_item;
+        items.forEach((description) => {
+          var newCodItem = `-`;
+          var newItem = {
+            identificador: "56074",
+            cod_item: newCodItem,
+            descripcion: description.trim(),
+            cantidad: 1,
+            precio7: ".0000", 
+            porc_iva: ".1500",
+            costo: 0,
+          };
 
-            var cellDescripcion = document.createElement("td");
-            cellDescripcion.textContent = product.descripcion;
+          productsSelected.push(newItem);
+          
+          selectedProductsMap[newCodItem] = newItem;
 
-            var cellActions = document.createElement("td");
-            var checkActions = document.createElement("input");
-            checkActions.type = "checkbox";
-            checkActions.setAttribute("data-cod-item", product.cod_item);
-
-            if (selectedProductsMap[product.cod_item]) {
-              checkActions.checked = true;
-            }
-
-            // Funcionalidad del check: Al seleccionar deben guardarse en ese arreglo de objetos y al deschekear debe quitarse
-            checkActions.addEventListener("change", function () {
-              if (checkActions.checked) {
-                product.cantidad = 1;
-                var costoIva =
-                  parseFloat(product.precio7) * parseFloat(product.porc_iva) +
-                  parseFloat(product.precio7);
-                var valCostoIva = parseFloat(costoIva);
-                product.costo =
-                  decimales == false ? valCostoIva : valCostoIva.toFixed(2);
-                productsSelected.push(product);
-                selectedProductsMap[product.cod_item] = product;
-              } else {
-                productsSelected = productsSelected.filter(function (item) {
-                  return item.cod_item !== product.cod_item;
-                });
-                delete selectedProductsMap[product.cod_item];
-              }
-              // Mostrar los productos seleccionados en la pantalla de Facturación
-              load_product_selected(productsSelected);
-              calcularCostoCompra();
-            });
-            cellActions.appendChild(checkActions);
-
-            row.appendChild(cellCodItem);
-            row.appendChild(cellDescripcion);
-            row.appendChild(cellActions);
-
-            tbodySerchProducts.appendChild(row);
-          });
-        } else {
           var row = document.createElement("tr");
-          var cell = document.createElement("td");
-          cell.textContent = "No se han encontrado coincidencias";
-          cell.setAttribute("colspan", "4");
-          row.appendChild(cell);
+
+          var cellCodItem = document.createElement("td");
+          cellCodItem.textContent = newItem.cod_item;
+
+          var cellDescripcion = document.createElement("td");
+          cellDescripcion.textContent = newItem.descripcion;
+
+          var cellActions = document.createElement("td");
+          var checkActions = document.createElement("input");
+          checkActions.type = "checkbox";
+          checkActions.setAttribute("data-cod-item", newItem.cod_item);
+          checkActions.checked = true;
+
+          checkActions.addEventListener("change", function () {
+            if (checkActions.checked) {
+              productsSelected.push(newItem);
+              selectedProductsMap[newCodItem] = newItem;
+            } else {
+              productsSelected = productsSelected.filter(function (item) {
+                return item.cod_item !== newCodItem;
+              });
+              delete selectedProductsMap[newCodItem];
+            }
+            // Actualizar los productos seleccionados
+            load_product_selected(productsSelected);
+            calcularCostoCompra();
+          });
+          cellActions.appendChild(checkActions);
+
+          row.appendChild(cellCodItem);
+          row.appendChild(cellDescripcion);
+          row.appendChild(cellActions);
+
           tbodySerchProducts.appendChild(row);
-        }
-      })
-      .catch((error) => {
-        toastr.error(error, "Error");
-        console.error("Error en la consulta:", error);
+        });
+        inputDescription.value = "";
+        modalNewItem.hide();
+        load_product_selected(productsSelected);
+        calcularCostoCompra();
+        toastr.success("Se han agregado los nuevos ítems a la lista.", "Éxito");
       });
-  } else {
-    console.log("Debe buscar a todos");
-    productSearch = "%";
+    }else{
+      rowProductsSelecteds.style.display = "";
+      colProductsFilter.style.display = "";
+      var url = `${window.location.origin}/getProduct/${productSearch}/`;
+      fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Ishida7410.",
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Error en la respuesta: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // console.log("Respuesta del servidor:", data);
+          var products = data.response;
+          toastr.success(
+            `Se han encontrado ${products.length} coincidencias.`,
+            "Productos encontrados"
+          );
+  
+          if (products.length != 0) {
+            products.forEach(function (product) {
+              var row = document.createElement("tr");
+  
+              var cellCodItem = document.createElement("td");
+              cellCodItem.textContent = product.cod_item;
+  
+              var cellDescripcion = document.createElement("td");
+              cellDescripcion.textContent = product.descripcion;
+  
+              var cellActions = document.createElement("td");
+              var checkActions = document.createElement("input");
+              checkActions.type = "checkbox";
+              checkActions.setAttribute("data-cod-item", product.cod_item);
+  
+              if (selectedProductsMap[product.cod_item]) {
+                checkActions.checked = true;
+              }
+  
+              // Funcionalidad del check: Al seleccionar deben guardarse en ese arreglo de objetos y al deschekear debe quitarse
+              checkActions.addEventListener("change", function () {
+                if (checkActions.checked) {
+                  product.cantidad = 1;
+                  var costoIva =
+                    parseFloat(product.precio7) * parseFloat(product.porc_iva) +
+                    parseFloat(product.precio7);
+                  var valCostoIva = parseFloat(costoIva);
+                  product.costo =
+                    decimales == false ? valCostoIva : valCostoIva.toFixed(2);
+                  productsSelected.push(product);
+                  selectedProductsMap[product.cod_item] = product;
+                } else {
+                  productsSelected = productsSelected.filter(function (item) {
+                    return item.cod_item !== product.cod_item;
+                  });
+                  delete selectedProductsMap[product.cod_item];
+                }
+                // Mostrar los productos seleccionados en la pantalla de Facturación
+                load_product_selected(productsSelected);
+                calcularCostoCompra();
+              });
+              cellActions.appendChild(checkActions);
+  
+              row.appendChild(cellCodItem);
+              row.appendChild(cellDescripcion);
+              row.appendChild(cellActions);
+  
+              tbodySerchProducts.appendChild(row);
+            });
+          } else {
+            var row = document.createElement("tr");
+            var cell = document.createElement("td");
+            cell.textContent = "No se han encontrado coincidencias";
+            cell.setAttribute("colspan", "4");
+            row.appendChild(cell);
+            tbodySerchProducts.appendChild(row);
+          }
+        })
+        .catch((error) => {
+          toastr.error(error, "Error");
+          console.error("Error en la consulta:", error);
+        });
+    }
   }
 });
 
@@ -363,7 +431,7 @@ btnGrabarTransaccion.addEventListener("click", async function () {
         }|0|5||0|}`;
       })
       .join(",")}]`;
-
+    console.log(cadenaTrama)
     var infoTrama = `${
       codBaseDatos[0].nombrebase
     };trama1;2016-01-01%202012:00:00;${
